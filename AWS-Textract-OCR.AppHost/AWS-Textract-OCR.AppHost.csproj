@@ -1,0 +1,22 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <IsAspireHost>true</IsAspireHost>
+    <UserSecretsId>46ab8d66-a909-44d4-984b-5b01ab140b41</UserSecretsId>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\AWS-Textract-OCR.ApiService\AWS-Textract-OCR.ApiService.csproj" />
+    <ProjectReference Include="..\AWS-Textract-OCR.Web\AWS-Textract-OCR.Web.csproj" />
+    <ProjectReference Include="..\IdDocumentEndpoint\IdDocumentEndpoint.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Aspire.Hosting.AppHost" Version="8.0.0-preview.5.24201.12" />
+  </ItemGroup>
+
+</Project>

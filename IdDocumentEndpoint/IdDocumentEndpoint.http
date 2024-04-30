@@ -1,0 +1,6 @@
+@IdDocumentEndpoint_HostAddress = http://localhost:5109
+
+GET {{IdDocumentEndpoint_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

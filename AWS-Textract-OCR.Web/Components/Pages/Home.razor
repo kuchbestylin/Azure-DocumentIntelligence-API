@@ -1,0 +1,93 @@
+﻿@page "/"
+@using System.Text.Json;
+@using System.Text;
+@using Microsoft.AspNetCore.Components.Forms
+@using Microsoft.JSInterop
+@using SharedProject.Services;
+@inject IJSRuntime jsRuntime
+@rendermode InteractiveServer
+@inject TooltipService tooltipService
+@inject NotificationService NotificationService
+
+<PageTitle>Home</PageTitle>
+
+<div class="d-flex flex-column-reverse">
+    <div class="col-5">
+        <InputFile OnChange="() => progressVisible = true" id="file-input" />
+        <RadzenProgressBarCircular Value="100" ShowValue="false" Visible="progressVisible" Mode="ProgressBarMode.Indeterminate" />
+    </div>
+    <div class="col-6 mb-5">
+        <RadzenDataGrid AllowColumnReorder="true"
+                        AllowFiltering="true" FilterPopupRenderMode="PopupRenderMode.OnDemand"
+                        AllowColumnResize="true" FilterMode="FilterMode.Advanced" PageSize="5"
+                        AllowPaging="true" AllowSorting="true" Data="@items" TItem="Result" LogicalFilterOperator="LogicalFilterOperator.Or">
+            <Columns>
+                <RadzenDataGridColumn TItem="Result" Width="80px" Title="Identity Number" TextAlign="TextAlign.Center" Reorderable="false" Resizable="false">
+                    <Template>
+                        <div>@idNumber</div>
+                    </Template>
+                </RadzenDataGridColumn>
+                <RadzenDataGridColumn TItem="Result" Property="Subject" Width="80px" Title="Subject" TextAlign="TextAlign.Center" Reorderable="false" Resizable="false" />
+                <RadzenDataGridColumn TItem="Result" Property="Level" Width="100px" Title="Level" />
+                <RadzenDataGridColumn TItem="Result" Property="Grade" Width="100px" Title="Grade" />
+            </Columns>
+            <EmptyTemplate>
+                <p style="color: lightgrey; font-size: 24px; text-align: center; margin: 2rem;">No records to display.</p>
+            </EmptyTemplate>
+        </RadzenDataGrid>
+    </div>
+    <div class="col-4 my-3">
+        <RadzenButton Text="@idNumber" MouseEnter="@(args => ShowTooltipWithHtml(args, new TooltipOptions(){ Style = "background: var(--rz-warning-light); color: var(--rz-text-color)", Duration = null }))" />
+    </div>
+</div>
+
+@code{
+    string idNumber = "";
+    static bool progressVisible = false;
+    List<Result> items = new List<Result>();
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        await jsRuntime.InvokeVoidAsync("initFiledropJs", DotNetObjectReference.Create(this), nameof(DocumentDataRecieved));
+    }
+
+    private async Task OnFileUpload(InputFileChangeEventArgs args)
+    {
+        await jsRuntime.InvokeVoidAsync("onFileInput", JsonSerializer.Serialize(args.File));
+    }
+
+    [JSInvokable]
+    public void DocumentDataRecieved(string json)
+    {
+        var jsonArray = JsonSerializer.Deserialize<IDAndResult>(json);
+        idNumber = jsonArray.id;
+        items = jsonArray.results;
+        progressVisible = false;
+        string message = $""""
+            {(string.IsNullOrEmpty(idNumber) ? "" : "ID Number")}
+        {((!string.IsNullOrEmpty(idNumber) & items.Count() > 0) ? " and " : "")}
+            {(items.Count() <= 0 ? "" : "Grade 12 Results ")}
+            Extraction Complete
+        """";
+        NotificationService.Notify(new NotificationMessage { Severity = NotificationSeverity.Success, Summary = "Success", Detail = message });
+        StateHasChanged();
+    }
+    record IDAndResult(string id, List<Result> results);
+    public class Result
+    {
+        public Result(string subject, string level, string grade)
+        {
+            Subject = subject;
+            Level = level;
+            Grade = grade;
+        }
+
+        public string Subject { get; set; }
+        public string Level { get; set; }
+        public string Grade { get; set; }
+    }
+    void ShowTooltipWithHtml(ElementReference elementReference, TooltipOptions options = null) => tooltipService.Open(elementReference, ds =>
+    @<div>
+         <b>Namibian National Identity Number</b>
+    </div>, options);
+}

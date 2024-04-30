@@ -1,0 +1,65 @@
+﻿<RadzenCard>
+    <RadzenText TextStyle="TextStyle.Subtitle2" TagName="TagName.H3">Manual Upload</RadzenText>
+    <RadzenUpload @ref="upload" Auto="false" Multiple="false" Url="upload/multiple" 
+        Change=@(args => OnChange(args)) 
+        InputAttributes="@(new Dictionary<string,object>(){ { "aria-label", "select file" }})"
+        class="w-100" />
+</RadzenCard>
+@code {
+
+    RadzenUpload upload;
+
+    int progress;
+    bool showProgress;
+    bool showComplete;
+    string completionMessage;
+    bool cancelUpload = false;
+
+    void CompleteUpload(UploadCompleteEventArgs args)
+    {
+        if (!args.Cancelled)
+            completionMessage = "Upload Complete!";
+        else
+            completionMessage = "Upload Cancelled!";
+
+        showProgress = false;
+        showComplete = true;
+    }
+
+    void TrackProgress(UploadProgressArgs args)
+    {
+        showProgress = true;
+        showComplete = false;
+        progress = args.Progress;
+
+        // cancel upload
+        args.Cancel = cancelUpload;
+
+        // reset cancel flag
+        cancelUpload = false;
+    }
+
+    void CancelUpload()
+    {
+        cancelUpload = true;
+    }
+
+    int customParameter = 1;
+
+    void OnChange(UploadChangeEventArgs args)
+    {
+        Console.WriteLine(args.Files.FirstOrDefault().Name);
+    }
+
+    void OnProgress(UploadProgressArgs args, string name)
+    {
+    }
+
+    void OnComplete(UploadCompleteEventArgs args)
+    {
+    }
+
+    void OnClientChange(UploadChangeEventArgs args)
+    {
+    }
+}
