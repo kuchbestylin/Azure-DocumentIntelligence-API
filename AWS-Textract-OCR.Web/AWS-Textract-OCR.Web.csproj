@@ -7,6 +7,10 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Content Remove="Components\Pages\MetricResults.razor" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="Radzen.Blazor" Version="4.29.7" />
   </ItemGroup>
 
@@ -15,5 +19,17 @@
   </ItemGroup>
 
   <Import Project="..\SharedProject\SharedProject.projitems" Label="Shared" />
+
+  <ItemGroup>
+    <UpToDateCheckInput Remove="Components\Pages\MetricResults.razor" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <_ContentIncludedByDefault Remove="Components\Pages\MetricResults.razor" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="Components\Pages\MetricResults.razor" />
+  </ItemGroup>
 
 </Project>

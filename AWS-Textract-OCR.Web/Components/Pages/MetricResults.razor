@@ -1,5 +1,5 @@
 ﻿@page "/metrics"
-@rendermode InteractiveServer
+
 @using System.Text.Json
 @using System.Text
 @using Green.DocumentIntelligence.Models
@@ -8,15 +8,16 @@
 @using SharedProject.Services;
 @using System.Net.Http.Headers
 @inject IJSRuntime jsRuntime
+@rendermode InteractiveServer
 @inject TooltipService tooltipService
 @inject NotificationService NotificationService
 
 <PageTitle>Metric Results</PageTitle>
 
-<div class="d-flex flex-wrap flex-column mt-3">
-    <div class="col-12 col-lg-6 mb-4 d-flex align-items-center justify-content-start">
-        <InputFile class="d-flex flex-column" disabled="@progressVisible" style="width: 13em" OnChange="ResultsUploaded" />
-        <RadzenProgressBarCircular Value="100" Style="max-height: 2em" ShowValue="false" Visible="progressVisible" Mode="ProgressBarMode.Indeterminate" />
+<div class="d-flex flex-wrap flex-column-reverse">
+    <div class="col-5">
+        <InputFile OnChange="ResultsUploaded" />
+        <RadzenProgressBarCircular Value="100" ShowValue="false" Visible="progressVisible" Mode="ProgressBarMode.Indeterminate" />
     </div>
     <div class="col-12 col-lg-6 mb-5">
         <RadzenDataGrid AllowColumnReorder="true"
@@ -32,6 +33,9 @@
                 <p style="color: lightgrey; font-size: 24px; text-align: center; margin: 2rem;">No records to display.</p>
             </EmptyTemplate>
         </RadzenDataGrid>
+    </div>
+    <div class="col-4 my-3">
+        <RadzenButton Text="@idNumber" MouseEnter="@(args => ShowTooltipWithHtml(args, new TooltipOptions(){ Style = "background: var(--rz-warning-light); color: var(--rz-text-color)", Duration = null, Position = TooltipPosition.Top }))" />
     </div>
 </div>
 

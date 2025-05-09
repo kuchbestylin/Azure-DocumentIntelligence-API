@@ -1,9 +1,11 @@
 ﻿@page "/"
 @using System.Text.Json;
 @using System.Text;
+@using Green.DocumentIntelligence.Models
 @using Microsoft.AspNetCore.Components.Forms
 @using Microsoft.JSInterop
 @using SharedProject.Services;
+@using System.Net.Http.Headers
 @inject IJSRuntime jsRuntime
 @rendermode InteractiveServer
 @inject TooltipService tooltipService
@@ -11,80 +13,77 @@
 
 <PageTitle>Home</PageTitle>
 
-<div class="d-flex flex-column-reverse">
-    <div class="col-5">
-        <InputFile OnChange="() => progressVisible = true" id="file-input" />
-        <RadzenProgressBarCircular Value="100" ShowValue="false" Visible="progressVisible" Mode="ProgressBarMode.Indeterminate" />
-    </div>
-    <div class="col-6 mb-5">
-        <RadzenDataGrid AllowColumnReorder="true"
-                        AllowFiltering="true" FilterPopupRenderMode="PopupRenderMode.OnDemand"
-                        AllowColumnResize="true" FilterMode="FilterMode.Advanced" PageSize="5"
-                        AllowPaging="true" AllowSorting="true" Data="@items" TItem="Result" LogicalFilterOperator="LogicalFilterOperator.Or">
-            <Columns>
-                <RadzenDataGridColumn TItem="Result" Width="80px" Title="Identity Number" TextAlign="TextAlign.Center" Reorderable="false" Resizable="false">
-                    <Template>
-                        <div>@idNumber</div>
-                    </Template>
-                </RadzenDataGridColumn>
-                <RadzenDataGridColumn TItem="Result" Property="Subject" Width="80px" Title="Subject" TextAlign="TextAlign.Center" Reorderable="false" Resizable="false" />
-                <RadzenDataGridColumn TItem="Result" Property="Level" Width="100px" Title="Level" />
-                <RadzenDataGridColumn TItem="Result" Property="Grade" Width="100px" Title="Grade" />
-            </Columns>
-            <EmptyTemplate>
-                <p style="color: lightgrey; font-size: 24px; text-align: center; margin: 2rem;">No records to display.</p>
-            </EmptyTemplate>
-        </RadzenDataGrid>
+<div class="d-flex flex-wrap flex-column-reverse">
+    <div class="col-5 d-flex flex-column justify-content-start gap-1">
+        <InputFile disabled="@progressVisible" OnChange="IdUploaded" />
+        <RadzenProgressBarCircular Value="100" Style="height: 2em; width: 2em;" ShowValue="false" Visible="progressVisible" Mode="ProgressBarMode.Indeterminate" />
     </div>
     <div class="col-4 my-3">
-        <RadzenButton Text="@idNumber" MouseEnter="@(args => ShowTooltipWithHtml(args, new TooltipOptions(){ Style = "background: var(--rz-warning-light); color: var(--rz-text-color)", Duration = null }))" />
+        <RadzenButton Style="background-color: green; width: 160px" MouseEnter="@(args => ShowTooltipWithHtml(args, new TooltipOptions(){ Duration = 0, Position = TooltipPosition.Top }))">
+            @((idNumber == null) ? "\"****** **** *\"" : idNumber)
+        </RadzenButton>
     </div>
 </div>
 
 @code{
-    string idNumber = "";
+    string idNumber = null;
     static bool progressVisible = false;
-    List<Result> items = new List<Result>();
+    List<Grade12Result> items = new List<Grade12Result>();
 
-    protected override async Task OnAfterRenderAsync(bool firstRender)
+    private async void IdUploaded(InputFileChangeEventArgs args)
     {
-        await jsRuntime.InvokeVoidAsync("initFiledropJs", DotNetObjectReference.Create(this), nameof(DocumentDataRecieved));
-    }
-
-    private async Task OnFileUpload(InputFileChangeEventArgs args)
-    {
-        await jsRuntime.InvokeVoidAsync("onFileInput", JsonSerializer.Serialize(args.File));
-    }
-
-    [JSInvokable]
-    public void DocumentDataRecieved(string json)
-    {
-        var jsonArray = JsonSerializer.Deserialize<IDAndResult>(json);
-        idNumber = jsonArray.id;
-        items = jsonArray.results;
-        progressVisible = false;
-        string message = $""""
-            {(string.IsNullOrEmpty(idNumber) ? "" : "ID Number")}
-        {((!string.IsNullOrEmpty(idNumber) & items.Count() > 0) ? " and " : "")}
-            {(items.Count() <= 0 ? "" : "Grade 12 Results ")}
-            Extraction Complete
-        """";
-        NotificationService.Notify(new NotificationMessage { Severity = NotificationSeverity.Success, Summary = "Success", Detail = message });
-        StateHasChanged();
-    }
-    record IDAndResult(string id, List<Result> results);
-    public class Result
-    {
-        public Result(string subject, string level, string grade)
+        progressVisible = true;
+        var file = args.File;
+        using (var client = new HttpClient())
         {
-            Subject = subject;
-            Level = level;
-            Grade = grade;
+            client.BaseAddress = new Uri("https://localhost:7500");
+
+            using (var content = new MultipartFormDataContent())
+            {
+                var fileContent = new StreamContent(file.OpenReadStream(maxAllowedSize: 1024 * 1024 * 15)); // Adjust maxAllowedSize as necessary
+                fileContent.Headers.ContentType = MediaTypeHeaderValue.Parse(file.ContentType);
+
+                content.Add(fileContent, "file", file.Name);
+
+                HttpResponseMessage response = await client.PostAsync("/identitynumber", content);
+                if (response.IsSuccessStatusCode)
+                {
+                    NotificationService.Notify(new NotificationMessage { Severity = NotificationSeverity.Success, Summary = "Success", Detail = "ID Extracted!" });
+                }
+                idNumber = await response.Content.ReadAsStringAsync();
+                Console.WriteLine(response.Content.ReadAsStringAsync());
+
+            }
         }
 
-        public string Subject { get; set; }
-        public string Level { get; set; }
-        public string Grade { get; set; }
+        progressVisible = false;
+        StateHasChanged();
+    }
+
+    private async void ResultsUploaded(InputFileChangeEventArgs args)
+    {
+        progressVisible = true;
+        var file = args.File;
+        using (var client = new HttpClient())
+        {
+            client.BaseAddress = new Uri("https://localhost:7500");
+
+            using (var content = new MultipartFormDataContent())
+            {
+                var fileContent = new StreamContent(file.OpenReadStream(maxAllowedSize: 1024 * 1024 * 15)); // Adjust maxAllowedSize as necessary
+                fileContent.Headers.ContentType = MediaTypeHeaderValue.Parse(file.ContentType);
+
+                content.Add(fileContent, "file", file.Name);
+
+                HttpResponseMessage response = await client.PostAsync("/grade12results", content);
+
+                List<Grade12Result> gg = new List<Grade12Result>();
+                items = await response.Content.ReadFromJsonAsync<List<Grade12Result>>();
+            }
+        }
+
+        progressVisible = false;
+        StateHasChanged();
     }
     void ShowTooltipWithHtml(ElementReference elementReference, TooltipOptions options = null) => tooltipService.Open(elementReference, ds =>
     @<div>

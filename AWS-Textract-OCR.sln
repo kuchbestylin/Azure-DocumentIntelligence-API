@@ -14,6 +14,8 @@ Project("{D954291E-2A0B-460D-934E-DC6B0785DB48}") = "SharedProject", "SharedProj
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "IdDocumentEndpoint", "IdDocumentEndpoint\IdDocumentEndpoint.csproj", "{98EC9CE3-BC1D-4A22-8ABB-8FFE70A5B166}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Green.Intelligence", "Green.DocumentIntelligence\Green.Intelligence.csproj", "{246BCE18-4AB7-4FCD-ADA9-81FFD6AA0215}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -40,6 +42,10 @@ Global
 		{98EC9CE3-BC1D-4A22-8ABB-8FFE70A5B166}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{98EC9CE3-BC1D-4A22-8ABB-8FFE70A5B166}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{98EC9CE3-BC1D-4A22-8ABB-8FFE70A5B166}.Release|Any CPU.Build.0 = Release|Any CPU
+		{246BCE18-4AB7-4FCD-ADA9-81FFD6AA0215}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{246BCE18-4AB7-4FCD-ADA9-81FFD6AA0215}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{246BCE18-4AB7-4FCD-ADA9-81FFD6AA0215}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{246BCE18-4AB7-4FCD-ADA9-81FFD6AA0215}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
